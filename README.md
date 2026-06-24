@@ -90,7 +90,9 @@ curl -fsSL https://raw.githubusercontent.com/CelestoAI/smolfs/main/scripts/insta
 The installer downloads the latest CLI release asset for your platform and
 installs SmolFS' managed storage backend. If no release asset exists yet, use the
 source checkout flow in [Development](#development). Set
-`SMOLFS_INSTALL_BACKEND=0` if you only want to install the CLI.
+`SMOLFS_INSTALL_BACKEND=0` if you only want to install the CLI. Set
+`SMOLFS_VERSION=dev` to try the latest successful build from `main`; tagged
+`v*` releases remain the stable channel.
 
 Check the machine and try a local volume:
 
@@ -462,7 +464,9 @@ durable infrastructure.
 The `smolfs` command is built from the Rust CLI crate. The GitHub workflow at
 `.github/workflows/publish-cli.yml` builds Linux and macOS release binaries for
 x86_64 and arm64 targets, smoke-tests `smolfs --help`, and attaches tarballs to
-`v*` GitHub releases.
+`v*` GitHub releases. Pushes to `main` publish a rolling `dev` prerelease after
+deleting the previous `dev` release and tag, so the dev channel only exposes the
+latest successful main build.
 
 Python packaging uses `uv` and `maturin`. The GitHub workflow at
 `.github/workflows/publish-python.yml` builds wheels for Linux and macOS, builds
