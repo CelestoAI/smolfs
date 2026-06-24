@@ -54,7 +54,13 @@ install_cli_binary() {
   fi
 
   mkdir -p "$install_dir"
-  curl -fsSL "$url" -o "$tmpdir/$asset"
+  if ! curl -fsL "$url" -o "$tmpdir/$asset"; then
+    echo "smolfs: could not download $asset from GitHub Releases." >&2
+    echo "No CLI release asset may exist yet for version '$version' and target '$target'." >&2
+    echo "Release assets are created by the Publish CLI workflow when a v* tag is pushed." >&2
+    echo "From a source checkout, use: cargo build -p smolfs-cli && ./target/debug/smolfs --help" >&2
+    exit 1
+  fi
   tar -xzf "$tmpdir/$asset" -C "$tmpdir"
   install -m 0755 "$tmpdir/smolfs" "$install_dir/smolfs"
 

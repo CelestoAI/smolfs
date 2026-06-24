@@ -22,6 +22,9 @@ smolfs mount demo ./workspace
 cat ./workspace/hello.txt
 ```
 
+The installer downloads the latest GitHub release asset for your platform. If no
+release has been cut yet, use the source checkout command below.
+
 `--dev` uses JuiceFS with local SQLite metadata and local file storage under
 `~/.smolfs/dev`.
 
