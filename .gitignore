@@ -1,8 +1,11 @@
 .DS_Store
+.env
 .gstack/
 /target/
 /.venv/
 /.pytest_cache/
+__pycache__/
+*.py[cod]
 bindings/python/target/
 bindings/python/.venv/
 bindings/python/python/smolfs/*.so
