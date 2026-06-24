@@ -174,7 +174,7 @@ fn doctor(py: Python<'_>) -> PyResult<Bound<'_, PyDict>> {
     doctor_report_to_py(py, report)
 }
 
-fn doctor_report_to_py<'py>(py: Python<'py>, report: DoctorReport) -> PyResult<Bound<'py, PyDict>> {
+fn doctor_report_to_py(py: Python<'_>, report: DoctorReport) -> PyResult<Bound<'_, PyDict>> {
     let dict = PyDict::new(py);
     dict.set_item("home", report.home.display().to_string())?;
     dict.set_item("config", report.config.display().to_string())?;
