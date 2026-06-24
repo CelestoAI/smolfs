@@ -421,7 +421,7 @@ Run the MinIO integration test path when the SmolFS storage backend, Redis, and
 a MinIO bucket are available:
 
 ```bash
-SMOLFS_RUN_INTEGRATION=1 cargo test -p smolfs-juicefs --test minio_integration -- --nocapture
+SMOLFS_RUN_INTEGRATION=1 cargo test --workspace -- --nocapture
 ```
 
 Build the Python wheel:
