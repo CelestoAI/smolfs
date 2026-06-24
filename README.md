@@ -327,7 +327,14 @@ SmolFS.
 ## TypeScript SDK
 
 The TypeScript package is a native Node.js binding over the same Rust core. The
-npm package is not published yet; for now, use the local checkout flow below.
+npm package ships prebuilt native bindings for Linux and macOS on x86_64 and
+arm64.
+
+Install it with npm:
+
+```bash
+npm install @celestoai/smolfs
+```
 
 For local development from this checkout, use Node.js 18 or newer:
 
@@ -472,12 +479,27 @@ Python packaging uses `uv` and `maturin`. The GitHub workflow at
 `.github/workflows/publish-python.yml` builds wheels for Linux and macOS, builds
 an sdist, and publishes to PyPI when a `v*` tag is pushed.
 
+Node.js packaging uses `npm` and `napi-rs`. The GitHub workflow at
+`.github/workflows/publish-node.yml` builds native TypeScript SDK bindings for
+Linux and macOS, checks the npm package contents, and publishes to npm when a
+`v*` tag is pushed.
+
 Before the first Python release, configure PyPI Trusted Publishing:
 
 1. Create or claim the `smolfs` project on PyPI.
 2. Add a trusted publisher for repository `CelestoAI/smolfs`.
 3. Set the workflow name to `publish-python.yml`.
 4. Set the environment name to `pypi`.
+
+Before the first npm release, configure npm trusted publishing for
+`@celestoai/smolfs`:
+
+1. Add a trusted publisher for GitHub Actions.
+2. Set the organization or user to `CelestoAI`.
+3. Set the repository to `smolfs`.
+4. Set the workflow filename to `publish-node.yml`.
+5. Set the environment name to `npm`.
+6. Allow `npm publish`.
 
 Release:
 
@@ -488,7 +510,6 @@ git push origin v0.1.0
 
 ## Roadmap
 
-- Add npm publishing with prebuilt TypeScript SDK native artifacts.
 - Add type stubs for the Python package.
 - Add a Linux CI job that mounts a local dev volume when mount support is
   available.

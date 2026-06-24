@@ -1,8 +1,7 @@
 {
   "name": "@celestoai/smolfs",
   "version": "0.1.0",
-  "description": "TypeScript bindings for SmolFS",
-  "private": true,
+  "description": "Durable workspace folders for TypeScript agents",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -17,8 +16,13 @@
     "agents",
     "filesystem",
     "object-storage",
+    "persistent-workspaces",
     "smolfs"
   ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "main": "index.js",
   "types": "index.d.ts",
   "files": [
