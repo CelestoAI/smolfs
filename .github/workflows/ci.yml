@@ -77,10 +77,10 @@ jobs:
       - name: Run unit tests
         run: cargo test --workspace
 
-      - name: Run MinIO integration test
+      - name: Run MinIO integration tests
         env:
           SMOLFS_RUN_INTEGRATION: "1"
-          SMOLFS_TEST_METADATA_URL: redis://127.0.0.1:6379/1
+          SMOLFS_TEST_REDIS_METADATA_URL: redis://127.0.0.1:6379/1
           SMOLFS_TEST_S3_BUCKET: http://127.0.0.1:9000/smolfs-ci
           ACCESS_KEY: minioadmin
           SECRET_KEY: minioadmin
