@@ -48,9 +48,9 @@ install_cli_binary() {
 
   asset="smolfs-$target.tar.gz"
   if [ "$version" = "latest" ]; then
-    url="https://github.com/$repo/releases/latest/download/$asset"
+    url="https://github.com/$repo/releases/latest/download/$asset?download=1"
   else
-    url="https://github.com/$repo/releases/download/$version/$asset"
+    url="https://github.com/$repo/releases/download/$version/$asset?download=1"
   fi
 
   mkdir -p "$install_dir"
