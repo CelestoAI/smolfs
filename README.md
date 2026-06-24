@@ -444,17 +444,6 @@ npm ci
 npm test
 ```
 
-## Project Layout
-
-| Path | Purpose |
-| --- | --- |
-| `crates/smolfs-core/` | Shared models, config, registry, paths, validation, and errors. |
-| `crates/smolfs-juicefs/` | JuiceFS command wrapper, doctor checks, service layer, and integration tests. |
-| `crates/smolfs-cli/` | User-facing CLI. |
-| `bindings/python/` | Python SDK built from the Rust core with PyO3 and maturin. |
-| `bindings/node/` | TypeScript SDK built from the Rust core with napi-rs. |
-| `.github/workflows/` | CI and package publishing workflows. |
-
 ## Security and Reliability
 
 SmolFS stores agent workspace data outside the sandbox lifecycle. Treat it like
