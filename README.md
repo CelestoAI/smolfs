@@ -11,30 +11,51 @@ SmolFS needs JuiceFS plus FUSE support on the machine that mounts volumes.
 Run `doctor` first; it reports the exact missing dependency and the next fix.
 
 ```bash
-cargo run -p smolfs-cli -- doctor
-cargo run -p smolfs-cli -- init demo --dev
-cargo run -p smolfs-cli -- mount demo ./workspace
+curl -fsSL https://raw.githubusercontent.com/CelestoAI/smolfs/main/scripts/install.sh | sh
+
+smolfs doctor
+smolfs init demo --dev
+smolfs mount demo ./workspace
 echo hello > ./workspace/hello.txt
-cargo run -p smolfs-cli -- unmount demo
-cargo run -p smolfs-cli -- mount demo ./workspace
+smolfs unmount demo
+smolfs mount demo ./workspace
 cat ./workspace/hello.txt
 ```
 
 `--dev` uses JuiceFS with local SQLite metadata and local file storage under
 `~/.smolfs/dev`.
 
+To install both the CLI and the Python SDK into the current Python project or
+active virtualenv:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/CelestoAI/smolfs/main/scripts/install.sh | SMOLFS_INSTALL_PYTHON=1 sh
+```
+
+For CLI development from this checkout:
+
+```bash
+cargo build -p smolfs-cli
+./target/debug/smolfs doctor
+```
+
 ## Python SDK
 
-Once the package is published, install it with `uv`:
+The Python package is SDK-only. Install it with `uv`:
 
 ```bash
 uv add smolfs
 ```
 
+The shell installer can also add the SDK for you when `SMOLFS_INSTALL_PYTHON=1`
+is set. It runs `uv add smolfs` from a directory with `pyproject.toml`, or
+`uv pip install smolfs` inside an active virtualenv. Set
+`SMOLFS_PYTHON_MODE=user` to use `uv pip install --user smolfs`.
+
 For local development from this checkout:
 
 ```bash
-uvx maturin develop --manifest-path bindings/python/Cargo.toml
+uv run --isolated --with-editable ./bindings/python python -c "from smolfs import doctor; print(doctor())"
 ```
 
 Use the SDK from any Python agent runner:
@@ -96,6 +117,12 @@ Release:
 git tag v0.1.0
 git push origin v0.1.0
 ```
+
+## Publishing the CLI
+
+The `smolfs` command is built from the Rust CLI crate. The GitHub workflow at
+`.github/workflows/publish-cli.yml` builds Linux and macOS release binaries,
+smoke-tests `smolfs --help`, and attaches tarballs to `v*` GitHub releases.
 
 ## Next Steps
 

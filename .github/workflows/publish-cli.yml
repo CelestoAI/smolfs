@@ -1,0 +1,83 @@
+name: Publish CLI
+
+on:
+  push:
+    branches:
+      - main
+      - "codex/**"
+    tags:
+      - "v*"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-cli:
+    name: Build CLI on ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: macos-latest
+            target: aarch64-apple-darwin
+          - os: macos-15-intel
+            target: x86_64-apple-darwin
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@c93f4f9c67595668add93d3d6895795ce52d8c2d # 1.85.0
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Build Rust CLI
+        run: cargo build --locked --release -p smolfs-cli --target ${{ matrix.target }}
+
+      - name: Smoke-test Rust CLI
+        run: ./target/${{ matrix.target }}/release/smolfs --help
+
+      - name: Package Rust CLI
+        run: |
+          set -euo pipefail
+          mkdir -p package dist
+          cp ./target/${{ matrix.target }}/release/smolfs package/smolfs
+          tar -C package -czf dist/smolfs-${{ matrix.target }}.tar.gz smolfs
+
+      - name: Upload CLI artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: smolfs-${{ matrix.target }}
+          path: dist/*
+
+  publish-cli:
+    name: Publish CLI release assets
+    runs-on: ubuntu-latest
+    needs: build-cli
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download CLI artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Publish CLI assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --title "$TAG" --generate-notes
+          fi
+          gh release upload "$TAG" dist/*.tar.gz --clobber
