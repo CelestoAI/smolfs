@@ -59,9 +59,7 @@ jobs:
         run: uvx maturin==${{ env.MATURIN_VERSION }} build --release --manifest-path bindings/python/Cargo.toml --interpreter python --out dist
 
       - name: Smoke-test Python wheel
-        run: |
-          uv run --isolated --with "$(find dist -name '*.whl' -print -quit)" python -c "from smolfs import SmolFS, SmolFSError, doctor; assert 'juicefs' in doctor()"
-          uv run --isolated --with "$(find dist -name '*.whl' -print -quit)" smolfs --help
+        run: uv run --isolated --with "$(find dist -name '*.whl' -print -quit)" python -c "from smolfs import SmolFS, SmolFSError, doctor; assert 'juicefs' in doctor()"
 
       - name: Upload wheel artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -102,9 +100,7 @@ jobs:
         run: uvx maturin==${{ env.MATURIN_VERSION }} sdist --manifest-path bindings/python/Cargo.toml --out dist
 
       - name: Smoke-test source distribution
-        run: |
-          uv run --isolated --with "$(find dist -name '*.tar.gz' -print -quit)" python -c "from smolfs import SmolFS, SmolFSError, doctor; assert 'juicefs' in doctor()"
-          uv run --isolated --with "$(find dist -name '*.tar.gz' -print -quit)" smolfs --help
+        run: uv run --isolated --with "$(find dist -name '*.tar.gz' -print -quit)" python -c "from smolfs import SmolFS, SmolFSError, doctor; assert 'juicefs' in doctor()"
 
       - name: Upload sdist artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

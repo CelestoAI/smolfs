@@ -11,7 +11,7 @@ SmolFS needs JuiceFS plus FUSE support on the machine that mounts volumes.
 Run `doctor` first; it reports the exact missing dependency and the next fix.
 
 ```bash
-uv tool install smolfs
+curl -fsSL https://raw.githubusercontent.com/CelestoAI/smolfs/main/scripts/install.sh | sh
 
 smolfs doctor
 smolfs init demo --dev
@@ -25,16 +25,16 @@ cat ./workspace/hello.txt
 `--dev` uses JuiceFS with local SQLite metadata and local file storage under
 `~/.smolfs/dev`.
 
-For local development from this checkout:
+For CLI development from this checkout:
 
 ```bash
-uv tool install --editable ./bindings/python
-smolfs doctor
+cargo build -p smolfs-cli
+./target/debug/smolfs doctor
 ```
 
 ## Python SDK
 
-Once the package is published, install it with `uv`:
+The Python package is SDK-only. Install it with `uv`:
 
 ```bash
 uv add smolfs
@@ -105,6 +105,12 @@ Release:
 git tag v0.1.0
 git push origin v0.1.0
 ```
+
+## Publishing the CLI
+
+The `smolfs` command is built from the Rust CLI crate. The GitHub workflow at
+`.github/workflows/publish-cli.yml` builds Linux and macOS release binaries,
+smoke-tests `smolfs --help`, and attaches tarballs to `v*` GitHub releases.
 
 ## Next Steps
 
