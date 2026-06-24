@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - "codex/**"
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@1.85.0
+        with:
+          components: clippy, rustfmt
+
+      - name: Install JuiceFS
+        run: |
+          curl -fsSL https://d.juicefs.com/install | sh -
+          juicefs version
+
+      - name: Start MinIO
+        run: |
+          docker run -d --name smolfs-minio \
+            -p 9000:9000 \
+            -e MINIO_ROOT_USER=minioadmin \
+            -e MINIO_ROOT_PASSWORD=minioadmin \
+            minio/minio:latest server /data
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:9000/minio/health/ready >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs smolfs-minio
+          exit 1
+
+      - name: Create MinIO bucket
+        run: |
+          docker run --rm --network host --entrypoint sh minio/mc:latest -c \
+            "mc alias set local http://127.0.0.1:9000 minioadmin minioadmin && mc mb -p local/smolfs-ci"
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run clippy
+        run: cargo clippy --workspace -- -D warnings
+
+      - name: Run unit tests
+        run: cargo test --workspace
+
+      - name: Run MinIO integration test
+        env:
+          SMOLFS_RUN_INTEGRATION: "1"
+          SMOLFS_TEST_METADATA_URL: redis://127.0.0.1:6379/1
+          SMOLFS_TEST_S3_BUCKET: http://127.0.0.1:9000/smolfs-ci
+          ACCESS_KEY: minioadmin
+          SECRET_KEY: minioadmin
+        run: cargo test -p smolfs-juicefs --test minio_integration -- --nocapture
+
+      - name: Build Python wheel
+        run: |
+          python3 -m pip install --upgrade pip maturin
+          python3 -m maturin build --manifest-path bindings/python/Cargo.toml --interpreter python3
