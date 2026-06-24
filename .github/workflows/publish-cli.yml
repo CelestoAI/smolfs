@@ -99,13 +99,15 @@ jobs:
           tar -C package -czf dist/smolfs-${{ matrix.target }}.tar.gz smolfs
 
       - name: Upload CLI artifact
+        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: smolfs-${{ matrix.target }}
           path: dist/*
+          retention-days: 3
 
-  publish-cli:
-    name: Publish CLI release assets
+  publish-stable-cli:
+    name: Publish stable CLI release assets
     runs-on: ubuntu-24.04
     needs: build-cli
     if: startsWith(github.ref, 'refs/tags/v')
@@ -131,3 +133,50 @@ jobs:
             gh release create "$TAG" --title "$TAG" --generate-notes
           fi
           gh release upload "$TAG" dist/*.tar.gz --clobber
+
+  publish-dev-cli:
+    name: Publish dev CLI release assets
+    runs-on: ubuntu-24.04
+    needs: build-cli
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download CLI artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Publish dev CLI assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: dev
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release delete "$TAG" --yes
+          fi
+          if gh api "repos/$GH_REPO/git/ref/tags/$TAG" >/dev/null 2>&1; then
+            gh api -X DELETE "repos/$GH_REPO/git/refs/tags/$TAG" >/dev/null
+          fi
+
+          notes_file="$(mktemp)"
+          {
+            echo "Latest successful CLI build from main."
+            echo
+            echo "Commit: $GITHUB_SHA"
+            echo "Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            echo
+            echo "This dev release is deleted and recreated on every push to main."
+          } > "$notes_file"
+
+          gh release create "$TAG" dist/*.tar.gz \
+            --target "$GITHUB_SHA" \
+            --title "dev" \
+            --notes-file "$notes_file" \
+            --prerelease \
+            --latest=false
