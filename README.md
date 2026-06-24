@@ -173,8 +173,9 @@ git push origin v0.1.0
 ## Publishing the CLI
 
 The `smolfs` command is built from the Rust CLI crate. The GitHub workflow at
-`.github/workflows/publish-cli.yml` builds Linux and macOS release binaries,
-smoke-tests `smolfs --help`, and attaches tarballs to `v*` GitHub releases.
+`.github/workflows/publish-cli.yml` builds Linux and macOS release binaries for
+x86_64 and arm64 targets, smoke-tests `smolfs --help`, and attaches tarballs to
+`v*` GitHub releases.
 
 ## Next Steps
 
