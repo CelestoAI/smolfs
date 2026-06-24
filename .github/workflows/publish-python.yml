@@ -13,6 +13,7 @@ env:
   CARGO_INCREMENTAL: "0"
   MATURIN_VERSION: "1.14.1"
   PYTHON_VERSION: "3.12"
+  TWINE_VERSION: "6.2.0"
   UV_VERSION: "0.11.24"
 
 jobs:
@@ -65,6 +66,9 @@ jobs:
       - name: Build Python wheel
         run: uvx maturin==${{ env.MATURIN_VERSION }} build --release --manifest-path bindings/python/Cargo.toml --interpreter python --out dist
 
+      - name: Check Python wheel metadata
+        run: uvx twine==${{ env.TWINE_VERSION }} check dist/*.whl
+
       - name: Smoke-test Python wheel
         run: uv run --isolated --with "$(find dist -name '*.whl' -print -quit)" python -c "from smolfs import SmolFS, SmolFSError, doctor; assert 'storage_backend' in doctor()"
 
@@ -106,6 +110,9 @@ jobs:
 
       - name: Build sdist
         run: uvx maturin==${{ env.MATURIN_VERSION }} sdist --manifest-path bindings/python/Cargo.toml --out dist
+
+      - name: Check sdist metadata
+        run: uvx twine==${{ env.TWINE_VERSION }} check dist/*.tar.gz
 
       - name: Smoke-test source distribution
         run: uv run --isolated --with "$(find dist -name '*.tar.gz' -print -quit)" python -c "from smolfs import SmolFS, SmolFSError, doctor; assert 'storage_backend' in doctor()"
