@@ -31,6 +31,16 @@ jobs:
         with:
           components: clippy, rustfmt
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - name: Install JuiceFS
         run: |
           curl -fsSL https://d.juicefs.com/install | sh -
@@ -76,6 +86,4 @@ jobs:
         run: cargo test -p smolfs-juicefs --test minio_integration -- --nocapture
 
       - name: Build Python wheel
-        run: |
-          python3 -m pip install --upgrade pip maturin
-          python3 -m maturin build --manifest-path bindings/python/Cargo.toml --interpreter python3
+        run: uvx maturin build --manifest-path bindings/python/Cargo.toml --interpreter python

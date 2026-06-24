@@ -1,5 +1,6 @@
 [package]
 name = "smolfs-cli"
+description = "Command-line interface for SmolFS agent volumes"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -16,4 +17,3 @@ clap.workspace = true
 serde_json.workspace = true
 smolfs-core.workspace = true
 smolfs-juicefs.workspace = true
-

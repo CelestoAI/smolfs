@@ -9,13 +9,20 @@ description = "Python bindings for SmolFS"
 requires-python = ">=3.9"
 license = "Apache-2.0"
 authors = [{ name = "Celesto AI" }]
+keywords = ["agents", "filesystem", "juicefs", "object-storage", "smolfs"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Rust",
+    "Topic :: System :: Filesystems",
+    "Topic :: Software Development :: Libraries :: Python Modules",
 ]
+
+[project.urls]
+Homepage = "https://github.com/CelestoAI/smolfs"
+Repository = "https://github.com/CelestoAI/smolfs"
+Issues = "https://github.com/CelestoAI/smolfs/issues"
 
 [tool.maturin]
 module-name = "smolfs._native"
 python-source = "python"
 features = ["pyo3/extension-module"]
-
