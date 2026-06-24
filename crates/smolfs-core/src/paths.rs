@@ -52,7 +52,11 @@ impl SmolFsHome {
         self.root.join("bin")
     }
 
-    pub fn managed_juicefs_bin(&self) -> PathBuf {
+    pub fn managed_storage_backend_bin(&self) -> PathBuf {
+        self.bin_dir().join("smolfs-storage")
+    }
+
+    pub fn legacy_managed_juicefs_bin(&self) -> PathBuf {
         self.bin_dir().join("juicefs")
     }
 

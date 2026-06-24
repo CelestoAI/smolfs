@@ -3,14 +3,14 @@ use std::path::PathBuf;
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use smolfs_core::{InitVolume, MountVolume, SmolFsHome};
-use smolfs_juicefs::{SmolFs, doctor, install_managed_juicefs};
+use smolfs_juicefs::{SmolFs, doctor, install_managed_storage_backend};
 
 #[derive(Debug, Parser)]
 #[command(
     name = "smolfs",
     version,
     about = "Durable developer volumes for agents",
-    long_about = "SmolFS manages JuiceFS-backed agent workspaces from one CLI. Use `smolfs doctor` first, then `smolfs init NAME --dev` for a local test volume."
+    long_about = "SmolFS manages durable agent workspaces from one CLI. Use `smolfs doctor` first, then `smolfs init NAME --dev` for a local test volume."
 )]
 struct Cli {
     #[command(subcommand)]
@@ -19,11 +19,11 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Command {
-    #[command(about = "Check JuiceFS, FUSE, and local SmolFS setup")]
+    #[command(about = "Check SmolFS storage, local mount support, and configuration")]
     Doctor {
         #[arg(
             long,
-            help = "Copy a discovered JuiceFS binary into SmolFS' managed bin directory"
+            help = "Install the managed SmolFS storage backend if it is missing"
         )]
         install: bool,
         #[arg(long, help = "Print a machine-readable setup report")]
@@ -33,21 +33,18 @@ enum Command {
     Init {
         #[arg(help = "Volume name, using letters, numbers, '.', '_' or '-'")]
         name: String,
-        #[arg(long, help = "Create a local JuiceFS volume for development")]
+        #[arg(long, help = "Create a local development volume")]
         dev: bool,
-        #[arg(long, help = "JuiceFS metadata URL, such as redis://localhost:6379/1")]
+        #[arg(long, help = "Metadata URL, such as redis://localhost:6379/1")]
         metadata: Option<String>,
         #[arg(
             long,
             help = "Object store URL, such as s3://bucket/prefix or file:///tmp/objects"
         )]
         store: Option<String>,
-        #[arg(
-            long,
-            help = "JuiceFS storage type escape hatch, such as s3, gs, or file"
-        )]
+        #[arg(long, help = "Storage type escape hatch, such as s3, gs, or file")]
         storage: Option<String>,
-        #[arg(long, help = "JuiceFS bucket/endpoint used with --storage")]
+        #[arg(long, help = "Bucket or endpoint used with --storage")]
         bucket: Option<String>,
     },
     #[command(about = "Mount a SmolFS volume at a local path")]
@@ -58,13 +55,10 @@ enum Command {
         path: PathBuf,
         #[arg(
             long,
-            help = "Run JuiceFS in the foreground instead of background mode"
+            help = "Run the mount process in the foreground instead of background mode"
         )]
         foreground: bool,
-        #[arg(
-            long,
-            help = "Ask JuiceFS to test object storage access before mounting"
-        )]
+        #[arg(long, help = "Test object storage access before mounting")]
         check_storage: bool,
     },
     #[command(about = "Show configured SmolFS volumes")]
@@ -79,7 +73,7 @@ enum Command {
         #[arg(help = "Mounted SmolFS volume name")]
         name: String,
     },
-    #[command(about = "Unmount a SmolFS volume and wait for JuiceFS flush")]
+    #[command(about = "Unmount a SmolFS volume and wait for pending writes")]
     Unmount {
         #[arg(help = "Mounted SmolFS volume name")]
         name: String,
@@ -101,8 +95,8 @@ fn main() -> Result<()> {
         Command::Doctor { install, json } => {
             let home = SmolFsHome::from_env()?;
             if install {
-                let path = install_managed_juicefs(&home)?;
-                println!("Installed managed JuiceFS binary at {}", path.display());
+                install_managed_storage_backend(&home)?;
+                println!("Installed SmolFS storage backend");
             }
             let report = doctor(&home)?;
             if json {
@@ -110,34 +104,28 @@ fn main() -> Result<()> {
             } else {
                 println!("SmolFS home: {}", report.home.display());
                 println!("Config: {}", report.config.display());
-                if report.juicefs.found {
+                if report.storage_backend.found {
                     println!(
-                        "JuiceFS: {}{}",
-                        report
-                            .juicefs
-                            .path
-                            .as_ref()
-                            .map(|path| path.display().to_string())
-                            .unwrap_or_else(|| "(unknown)".into()),
-                        if report.juicefs.managed {
-                            " (managed)"
+                        "Storage backend: {}",
+                        if report.storage_backend.managed {
+                            "installed (managed)"
                         } else {
-                            ""
+                            "installed"
                         }
                     );
-                    if let Some(version) = report.juicefs.version {
-                        println!("Version: {version}");
+                    if let Some(version) = report.storage_backend.version {
+                        println!("Storage backend version: {version}");
                     }
                 } else {
-                    println!("JuiceFS: missing");
-                    println!("Fix: run `smolfs doctor --install` or set SMOLFS_JUICEFS_BIN");
+                    println!("Storage backend: missing");
+                    println!("Fix: run `smolfs doctor --install`");
                 }
 
-                if report.fuse.found {
-                    println!("FUSE: {}", report.fuse.detail);
+                if report.mount_support.found {
+                    println!("Mount support: {}", report.mount_support.detail);
                 } else {
-                    println!("FUSE: missing ({})", report.fuse.detail);
-                    if let Some(fix) = report.fuse.fix {
+                    println!("Mount support: missing ({})", report.mount_support.detail);
+                    if let Some(fix) = report.mount_support.fix {
                         println!("Fix: {fix}");
                     }
                 }

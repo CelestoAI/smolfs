@@ -9,7 +9,7 @@ description = "Python bindings for SmolFS"
 requires-python = ">=3.9"
 license = "Apache-2.0"
 authors = [{ name = "Celesto AI" }]
-keywords = ["agents", "filesystem", "juicefs", "object-storage", "smolfs"]
+keywords = ["agents", "filesystem", "object-storage", "smolfs"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Rust",

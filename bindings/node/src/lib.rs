@@ -57,7 +57,7 @@ pub struct BinaryReport {
 }
 
 #[napi(object)]
-pub struct FuseReport {
+pub struct MountSupportReport {
     pub found: bool,
     pub detail: String,
     pub fix: Option<String>,
@@ -67,8 +67,8 @@ pub struct FuseReport {
 pub struct DoctorReport {
     pub home: String,
     pub config: String,
-    pub juicefs: BinaryReport,
-    pub fuse: FuseReport,
+    pub storage_backend: BinaryReport,
+    pub mount_support: MountSupportReport,
 }
 
 #[napi(js_name = "SmolFS")]
@@ -203,16 +203,19 @@ impl From<smolfs_core::DoctorReport> for DoctorReport {
         Self {
             home: value.home.display().to_string(),
             config: value.config.display().to_string(),
-            juicefs: BinaryReport {
-                found: value.juicefs.found,
-                path: value.juicefs.path.map(|path| path.display().to_string()),
-                version: value.juicefs.version,
-                managed: value.juicefs.managed,
+            storage_backend: BinaryReport {
+                found: value.storage_backend.found,
+                path: value
+                    .storage_backend
+                    .path
+                    .map(|path| path.display().to_string()),
+                version: value.storage_backend.version,
+                managed: value.storage_backend.managed,
             },
-            fuse: FuseReport {
-                found: value.fuse.found,
-                detail: value.fuse.detail,
-                fix: value.fuse.fix,
+            mount_support: MountSupportReport {
+                found: value.mount_support.found,
+                detail: value.mount_support.detail,
+                fix: value.mount_support.fix,
             },
         }
     }
@@ -220,11 +223,9 @@ impl From<smolfs_core::DoctorReport> for DoctorReport {
 
 fn to_napi_err(err: smolfs_core::SmolFsError) -> Error {
     match err {
-        SmolFsError::CommandFailed {
-            program, status, ..
-        } => Error::from_reason(format!(
-            "command failed: {program} exited with {status}; rerun `smolfs` with the same inputs for command output"
-        )),
+        SmolFsError::CommandFailed { status, .. } => {
+            Error::from_reason(format!("SmolFS storage backend exited with {status}"))
+        }
         err => Error::from_reason(err.to_string()),
     }
 }

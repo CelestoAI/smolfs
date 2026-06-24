@@ -6,23 +6,23 @@ const { spawnSync } = require("node:child_process");
 
 const root = mkdtempSync(join(tmpdir(), "smolfs-node-pack-"));
 const project = join(root, "project");
-const juicefs = join(root, "juicefs");
+const storageBackend = join(root, "smolfs-storage");
 
 mkdirSync(project);
 
 writeFileSync(
-  juicefs,
+  storageBackend,
   [
     "#!/bin/sh",
     "if [ \"$1\" = \"version\" ]; then",
-    "  echo \"juicefs mock 1.0.0\"",
+    "  echo \"storage backend mock 1.0.0\"",
     "  exit 0",
     "fi",
     "exit 0",
     ""
   ].join("\n")
 );
-chmodSync(juicefs, 0o755);
+chmodSync(storageBackend, 0o755);
 
 run("npm", ["pack", "--pack-destination", root], process.cwd());
 run("npm", ["init", "-y"], root);
@@ -35,14 +35,14 @@ const smoke = [
   "const { SmolFS, doctor } = require('@celestoai/smolfs');",
   "assert.equal(typeof SmolFS, 'function');",
   "assert.equal(typeof doctor, 'function');",
-  "assert.equal(doctor().juicefs.version, 'juicefs mock 1.0.0');",
+  "assert.equal(doctor().storageBackend.version, '1.0.0');",
   ""
 ].join("\n");
 
 run(process.execPath, ["-e", smoke], project, {
   ...process.env,
   SMOLFS_HOME: join(root, "home"),
-  SMOLFS_JUICEFS_BIN: juicefs
+  SMOLFS_STORAGE_BACKEND_BIN: storageBackend
 });
 
 function run(command, args, cwd, env = process.env) {

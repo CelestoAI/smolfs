@@ -40,7 +40,7 @@ export interface BinaryReport {
   version?: string
   managed: boolean
 }
-export interface FuseReport {
+export interface MountSupportReport {
   found: boolean
   detail: string
   fix?: string
@@ -48,8 +48,8 @@ export interface FuseReport {
 export interface DoctorReport {
   home: string
   config: string
-  juicefs: BinaryReport
-  fuse: FuseReport
+  storageBackend: BinaryReport
+  mountSupport: MountSupportReport
 }
 export declare function doctor(): DoctorReport
 export type SmolFs = SmolFS

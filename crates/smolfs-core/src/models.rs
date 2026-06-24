@@ -66,8 +66,8 @@ impl From<&Volume> for VolumeInfo {
 pub struct DoctorReport {
     pub home: PathBuf,
     pub config: PathBuf,
-    pub juicefs: BinaryReport,
-    pub fuse: FuseReport,
+    pub storage_backend: BinaryReport,
+    pub mount_support: MountSupportReport,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -79,7 +79,7 @@ pub struct BinaryReport {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FuseReport {
+pub struct MountSupportReport {
     pub found: bool,
     pub detail: String,
     pub fix: Option<String>,

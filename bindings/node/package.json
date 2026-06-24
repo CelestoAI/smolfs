@@ -16,7 +16,6 @@
   "keywords": [
     "agents",
     "filesystem",
-    "juicefs",
     "object-storage",
     "smolfs"
   ],

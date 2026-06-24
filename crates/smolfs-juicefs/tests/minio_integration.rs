@@ -1,7 +1,7 @@
 use std::env;
 
 use smolfs_core::{Config, InitVolume, SmolFsHome};
-use smolfs_juicefs::{SmolFs, install_managed_juicefs};
+use smolfs_juicefs::{SmolFs, install_managed_storage_backend};
 
 struct MetadataBackend {
     name: &'static str,
@@ -26,14 +26,14 @@ fn initializes_volume_against_minio_s3_bucket_with_metadata_backends() {
     let home = SmolFsHome::new(temp.path());
     let metadata_backends = metadata_backends(temp.path());
 
-    if let Ok(bin) = env::var("SMOLFS_JUICEFS_BIN") {
+    if let Ok(bin) = env::var("SMOLFS_STORAGE_BACKEND_BIN") {
         Config {
-            juicefs_bin: Some(bin.into()),
+            storage_backend_bin: Some(bin.into()),
         }
         .save(&home)
-        .expect("save JuiceFS path");
+        .expect("save storage backend path");
     } else {
-        install_managed_juicefs(&home).expect("install managed JuiceFS from PATH");
+        install_managed_storage_backend(&home).expect("install managed storage backend");
     }
 
     let fs = SmolFs::new(home).expect("construct SmolFS service");
@@ -51,7 +51,7 @@ fn initializes_volume_against_minio_s3_bucket_with_metadata_backends() {
             })
             .unwrap_or_else(|err| {
                 panic!(
-                    "initialize JuiceFS volume backed by MinIO with {} metadata: {err}",
+                    "initialize SmolFS volume backed by MinIO with {} metadata: {err}",
                     metadata.name
                 )
             });
