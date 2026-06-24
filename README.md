@@ -417,7 +417,7 @@ echo "hello from smolfs r2" > "$MOUNT/hello.txt"
 cat "$MOUNT/hello.txt"
 ```
 
-Run the MinIO integration test path when Docker, Redis, JuiceFS, and FUSE are
+Run the MinIO integration test path when JuiceFS, Redis, and a MinIO bucket are
 available:
 
 ```bash
