@@ -25,6 +25,13 @@ cat ./workspace/hello.txt
 `--dev` uses JuiceFS with local SQLite metadata and local file storage under
 `~/.smolfs/dev`.
 
+To install both the CLI and the Python SDK into the current Python project or
+active virtualenv:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/CelestoAI/smolfs/main/scripts/install.sh | SMOLFS_INSTALL_PYTHON=1 sh
+```
+
 For CLI development from this checkout:
 
 ```bash
@@ -39,6 +46,11 @@ The Python package is SDK-only. Install it with `uv`:
 ```bash
 uv add smolfs
 ```
+
+The shell installer can also add the SDK for you when `SMOLFS_INSTALL_PYTHON=1`
+is set. It runs `uv add smolfs` from a directory with `pyproject.toml`, or
+`uv pip install smolfs` inside an active virtualenv. Set
+`SMOLFS_PYTHON_MODE=user` to use `uv pip install --user smolfs`.
 
 For local development from this checkout:
 

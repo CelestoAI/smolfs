@@ -86,6 +86,19 @@ jobs:
       - name: Smoke-test Rust CLI
         run: ./target/debug/smolfs --help
 
+      - name: Smoke-test installer Python SDK path
+        run: |
+          set -euo pipefail
+          tmpdir="$(mktemp -d)"
+          cd "$tmpdir"
+          uv init --bare --name smolfs-install-smoke
+          SMOLFS_INSTALL_CLI=0 \
+            SMOLFS_INSTALL_PYTHON=1 \
+            SMOLFS_PYTHON_MODE=project \
+            SMOLFS_PYTHON_PACKAGE=typing-extensions \
+            "$GITHUB_WORKSPACE/scripts/install.sh"
+          grep -q "typing-extensions" pyproject.toml
+
       - name: Run unit tests
         run: cargo test --workspace
 
