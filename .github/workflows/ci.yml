@@ -29,7 +29,6 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@c93f4f9c67595668add93d3d6895795ce52d8c2d # 1.85.0
         with:
-          toolchain: 1.85.0
           components: clippy, rustfmt
 
       - name: Install uv
