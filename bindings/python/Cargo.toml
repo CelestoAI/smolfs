@@ -1,0 +1,17 @@
+[package]
+name = "smolfs-python"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+name = "_native"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3.workspace = true
+smolfs-core.workspace = true
+smolfs-juicefs.workspace = true
+
