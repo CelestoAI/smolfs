@@ -9,6 +9,7 @@ on:
 
 env:
   MATURIN_VERSION: "1.14.1"
+  NODE_VERSION: "24"
   PYTHON_VERSION: "3.12"
   UV_VERSION: "0.11.24"
 
@@ -46,6 +47,13 @@ jobs:
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: bindings/node/package-lock.json
 
       - name: Install JuiceFS
         run: |
@@ -98,6 +106,14 @@ jobs:
             SMOLFS_PYTHON_PACKAGE=typing-extensions \
             "$GITHUB_WORKSPACE/scripts/install.sh"
           grep -q "typing-extensions" pyproject.toml
+
+      - name: Install TypeScript SDK dependencies
+        working-directory: bindings/node
+        run: npm ci
+
+      - name: Test TypeScript SDK
+        working-directory: bindings/node
+        run: npm test
 
       - name: Run unit tests
         run: cargo test --workspace

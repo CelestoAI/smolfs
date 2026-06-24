@@ -1,0 +1,48 @@
+{
+  "name": "@celestoai/smolfs",
+  "version": "0.1.0",
+  "description": "TypeScript bindings for SmolFS",
+  "private": true,
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CelestoAI/smolfs.git",
+    "directory": "bindings/node"
+  },
+  "homepage": "https://github.com/CelestoAI/smolfs#readme",
+  "bugs": {
+    "url": "https://github.com/CelestoAI/smolfs/issues"
+  },
+  "keywords": [
+    "agents",
+    "filesystem",
+    "juicefs",
+    "object-storage",
+    "smolfs"
+  ],
+  "main": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "*.node"
+  ],
+  "scripts": {
+    "build": "napi build --platform --release --dts index.d.ts",
+    "build:debug": "napi build --platform --dts index.d.ts",
+    "test": "npm run build:debug && node --test test/*.test.js && npm run test:types && npm run test:package",
+    "test:package": "node test/package-smoke.js",
+    "test:types": "tsc --noEmit -p test/tsconfig.json"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "2.18.4",
+    "@types/node": "24.10.4",
+    "typescript": "5.9.3"
+  },
+  "napi": {
+    "name": "smolfs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
