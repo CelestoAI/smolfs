@@ -7,7 +7,15 @@ on:
       - "codex/**"
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
 env:
+  CARGO_INCREMENTAL: "0"
   MATURIN_VERSION: "1.14.1"
   NODE_VERSION: "24"
   PYTHON_VERSION: "3.12"
@@ -16,6 +24,7 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     services:
       redis:
@@ -37,6 +46,11 @@ jobs:
         with:
           components: clippy, rustfmt
 
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+        with:
+          shared-key: ci-${{ runner.os }}
+
       - name: Install uv
         uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
         with:
@@ -57,7 +71,7 @@ jobs:
 
       - name: Install SmolFS storage backend
         run: |
-          curl -fsSL https://d.juicefs.com/install | sh -
+          curl --retry 5 --retry-all-errors --connect-timeout 20 --max-time 120 -fsSL https://d.juicefs.com/install | sh -
           juicefs version
 
       - name: Start MinIO
