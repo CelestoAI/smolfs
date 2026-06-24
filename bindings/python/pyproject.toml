@@ -17,6 +17,9 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
+[project.scripts]
+smolfs = "smolfs.cli:main"
+
 [project.urls]
 Homepage = "https://github.com/CelestoAI/smolfs"
 Repository = "https://github.com/CelestoAI/smolfs"

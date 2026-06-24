@@ -4,7 +4,9 @@ use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use smolfs_core::{DoctorReport, InitVolume, MountVolume, SmolFsHome};
-use smolfs_juicefs::{SmolFs, doctor as run_doctor};
+use smolfs_juicefs::{
+    SmolFs, doctor as run_doctor, install_managed_juicefs as run_install_managed_juicefs,
+};
 
 pyo3::create_exception!(smolfs, SmolFSError, PyException);
 
@@ -174,6 +176,14 @@ fn doctor(py: Python<'_>) -> PyResult<Bound<'_, PyDict>> {
     doctor_report_to_py(py, report)
 }
 
+#[pyfunction]
+fn install_managed_juicefs() -> PyResult<String> {
+    let home = SmolFsHome::from_env().map_err(to_py_err)?;
+    run_install_managed_juicefs(&home)
+        .map(|path| path.display().to_string())
+        .map_err(to_py_err)
+}
+
 fn doctor_report_to_py(py: Python<'_>, report: DoctorReport) -> PyResult<Bound<'_, PyDict>> {
     let dict = PyDict::new(py);
     dict.set_item("home", report.home.display().to_string())?;
@@ -207,6 +217,7 @@ fn to_py_err(err: smolfs_core::SmolFsError) -> PyErr {
 fn _native(py: Python<'_>, module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add("SmolFSError", py.get_type::<SmolFSError>())?;
     module.add_function(wrap_pyfunction!(doctor, module)?)?;
+    module.add_function(wrap_pyfunction!(install_managed_juicefs, module)?)?;
     module.add_class::<PySmolFs>()?;
     module.add_class::<VolumeInfo>()?;
     module.add_class::<MountInfo>()?;

@@ -93,4 +93,7 @@ jobs:
         run: cargo test -p smolfs-juicefs --test minio_integration -- --nocapture
 
       - name: Build Python wheel
-        run: uvx maturin==${{ env.MATURIN_VERSION }} build --manifest-path bindings/python/Cargo.toml --interpreter python
+        run: uvx maturin==${{ env.MATURIN_VERSION }} build --manifest-path bindings/python/Cargo.toml --interpreter python --out dist
+
+      - name: Smoke-test Python CLI
+        run: uv run --isolated --with "$(find dist -name '*.whl' -print -quit)" smolfs --help

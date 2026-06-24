@@ -11,17 +11,26 @@ SmolFS needs JuiceFS plus FUSE support on the machine that mounts volumes.
 Run `doctor` first; it reports the exact missing dependency and the next fix.
 
 ```bash
-cargo run -p smolfs-cli -- doctor
-cargo run -p smolfs-cli -- init demo --dev
-cargo run -p smolfs-cli -- mount demo ./workspace
+uv tool install smolfs
+
+smolfs doctor
+smolfs init demo --dev
+smolfs mount demo ./workspace
 echo hello > ./workspace/hello.txt
-cargo run -p smolfs-cli -- unmount demo
-cargo run -p smolfs-cli -- mount demo ./workspace
+smolfs unmount demo
+smolfs mount demo ./workspace
 cat ./workspace/hello.txt
 ```
 
 `--dev` uses JuiceFS with local SQLite metadata and local file storage under
 `~/.smolfs/dev`.
+
+For local development from this checkout:
+
+```bash
+uv tool install --editable ./bindings/python
+smolfs doctor
+```
 
 ## Python SDK
 
@@ -34,7 +43,7 @@ uv add smolfs
 For local development from this checkout:
 
 ```bash
-uvx maturin develop --manifest-path bindings/python/Cargo.toml
+uv run --isolated --with-editable ./bindings/python python -c "from smolfs import doctor; print(doctor())"
 ```
 
 Use the SDK from any Python agent runner:
