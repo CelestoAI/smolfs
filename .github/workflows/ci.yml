@@ -55,7 +55,7 @@ jobs:
           cache: npm
           cache-dependency-path: bindings/node/package-lock.json
 
-      - name: Install JuiceFS
+      - name: Install SmolFS storage backend
         run: |
           curl -fsSL https://d.juicefs.com/install | sh -
           juicefs version
@@ -131,4 +131,4 @@ jobs:
         run: uvx maturin==${{ env.MATURIN_VERSION }} build --manifest-path bindings/python/Cargo.toml --interpreter python --out dist
 
       - name: Smoke-test Python SDK
-        run: uv run --isolated --with "$(find dist -name '*.whl' -print -quit)" python -c "from smolfs import SmolFS, SmolFSError, doctor; assert 'juicefs' in doctor()"
+        run: uv run --isolated --with "$(find dist -name '*.whl' -print -quit)" python -c "from smolfs import SmolFS, SmolFSError, doctor; assert 'storage_backend' in doctor()"

@@ -23,9 +23,9 @@ SmolFS gives agents a workspace folder that can survive after the agent process
 stops. You mount it like a normal directory, write files into it, unmount it
 when the job is done, and mount it again later from another process.
 
-SmolFS uses JuiceFS for the filesystem work. SmolFS owns the simpler developer
-experience around creating volumes, checking the machine, mounting, flushing,
-unmounting, and inspecting status.
+SmolFS owns the developer experience around creating volumes, checking the
+machine, mounting, flushing, unmounting, and inspecting status. The storage
+backend is installed and managed for you.
 
 <br>
 
@@ -33,7 +33,7 @@ unmounting, and inspecting status.
 <tr>
 <td width="50%" valign="top">
 <p><img src="https://api.iconify.design/lucide/folder-sync.svg?color=%236e7681" width="24" height="24" align="absmiddle" alt=""> <strong>Durable workspaces</strong></p>
-<p>Agents can keep files across short-lived runtimes without each runtime managing JuiceFS directly.</p>
+<p>Agents can keep files across short-lived runtimes without each runtime managing storage setup directly.</p>
 <p><a href="#cli-lifecycle">Read more -&gt;</a></p>
 </td>
 <td width="50%" valign="top">
@@ -77,18 +77,20 @@ unmounting, and inspecting status.
 - **Test locally before using cloud storage.** Start with `--dev`, then switch
   to explicit metadata and object storage settings.
 - **Wrap storage in agent tooling.** Use the Python or TypeScript SDK from an
-  agent runner instead of teaching every agent process about JuiceFS.
+  agent runner instead of teaching every agent process about storage internals.
 
 ## Quickstart
 
-Install the SmolFS CLI:
+Install SmolFS:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/CelestoAI/smolfs/main/scripts/install.sh | sh
 ```
 
-The installer downloads the latest CLI release asset for your platform. If no
-release asset exists yet, use the source checkout flow in [Development](#development).
+The installer downloads the latest CLI release asset for your platform and
+installs SmolFS' managed storage backend. If no release asset exists yet, use the
+source checkout flow in [Development](#development). Set
+`SMOLFS_INSTALL_BACKEND=0` if you only want to install the CLI.
 
 Check the machine and try a local volume:
 
@@ -103,9 +105,8 @@ smolfs mount demo ./workspace
 cat ./workspace/hello.txt
 ```
 
-SmolFS needs JuiceFS plus FUSE support on the machine that mounts volumes. FUSE
-is operating system support that lets an app provide a folder your tools can
-read and write.
+SmolFS needs local mount support on the machine that mounts volumes. Mount
+support lets SmolFS provide a folder your tools can read and write.
 
 <details>
 <summary>Install the Python SDK with the CLI</summary>
@@ -134,13 +135,12 @@ Run `doctor` before creating or mounting volumes:
 smolfs doctor
 ```
 
-`doctor` checks whether SmolFS can find JuiceFS and whether the machine can use
-FUSE.
+`doctor` checks whether SmolFS has its managed storage backend and whether the
+machine can mount local directories.
 
 Useful options:
 
-- `smolfs doctor --install` copies a discovered JuiceFS binary into SmolFS'
-  managed bin directory.
+- `smolfs doctor --install` installs SmolFS' managed storage backend.
 - `smolfs doctor --json` prints the same report as JSON for scripts.
 
 SmolFS looks for its home directory in `SMOLFS_HOME`. If it is not set, SmolFS
@@ -161,8 +161,8 @@ trying SmolFS on one machine.
 
 ### Create a Cloud Volume
 
-Cloud volumes need explicit metadata and object storage settings. Metadata is
-where JuiceFS stores the file tree. Object storage is where file contents live.
+Cloud volumes need explicit metadata and object storage settings. Metadata
+stores the file tree. Object storage is where file contents live.
 
 ```bash
 smolfs init agent-workspace \
@@ -179,7 +179,7 @@ You can pass object storage in either of these forms:
   that expect an endpoint-style bucket URL.
 
 For Cloudflare R2 or another S3-compatible service, keep credentials in the
-environment used by JuiceFS. Do not put access keys in command arguments or logs.
+environment used by SmolFS. Do not put access keys in command arguments or logs.
 
 ```bash
 set -a
@@ -210,10 +210,10 @@ succeeds, programs can read and write files through that directory.
 
 Useful options:
 
-- `--check-storage` asks JuiceFS to test object storage access before the mount
+- `--check-storage` asks SmolFS to test object storage access before the mount
   completes.
-- `--foreground` runs JuiceFS in the foreground instead of starting a background
-  mount process.
+- `--foreground` runs the mount process in the foreground instead of starting it
+  in the background.
 
 ### Flush, Inspect, and Unmount
 
@@ -238,9 +238,9 @@ Unmount when the job is done:
 smolfs unmount demo
 ```
 
-`unmount` asks JuiceFS to flush before detaching the mountpoint. Use
+`unmount` asks SmolFS to flush before detaching the mountpoint. Use
 `smolfs umount demo` if you prefer the shorter alias. Add `--force` when the
-mountpoint is busy and you want JuiceFS to force the unmount.
+mountpoint is busy and you want SmolFS to force the unmount.
 
 After unmounting, you can mount the same volume again and read the files:
 
@@ -253,13 +253,13 @@ cat ./workspace/hello.txt
 
 | Command | What it does |
 | --- | --- |
-| `smolfs doctor` | Checks JuiceFS, FUSE, and local SmolFS setup. |
+| `smolfs doctor` | Checks SmolFS storage, local mount support, and configuration. |
 | `smolfs init NAME --dev` | Creates a local development volume. |
 | `smolfs init NAME --metadata URL --storage TYPE --bucket BUCKET` | Creates a cloud volume with explicit metadata and object storage. |
 | `smolfs mount NAME PATH` | Mounts a volume at a local directory. |
 | `smolfs flush NAME` | Probes the mounted volume and syncs a small file through it. |
 | `smolfs status [NAME]` | Shows known volumes and current mountpoints. |
-| `smolfs unmount NAME` | Unmounts a mounted volume and asks JuiceFS to flush. |
+| `smolfs unmount NAME` | Unmounts a mounted volume and asks SmolFS to flush. |
 | `smolfs umount NAME` | Alias for `smolfs unmount NAME`. |
 
 Every command has its own help page:
@@ -291,7 +291,7 @@ from pathlib import Path
 from smolfs import SmolFS, doctor
 
 report = doctor()
-if not report["juicefs"]["found"] or not report["fuse"]["found"]:
+if not report["storage_backend"]["found"] or not report["mount_support"]["found"]:
     raise RuntimeError(f"SmolFS is not ready: {report}")
 
 fs = SmolFS.from_env()
@@ -320,7 +320,7 @@ fs.ensure_volume(
 
 For S3-compatible services such as MinIO or Cloudflare R2, pass the service
 bucket URL and provide `ACCESS_KEY` and `SECRET_KEY` in the environment used by
-JuiceFS.
+SmolFS.
 
 ## TypeScript SDK
 
@@ -344,7 +344,7 @@ import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 const report = doctor();
-if (!report.juicefs.found || !report.fuse.found) {
+if (!report.storageBackend.found || !report.mountSupport.found) {
   throw new Error(`SmolFS is not ready: ${JSON.stringify(report)}`);
 }
 
@@ -417,8 +417,8 @@ echo "hello from smolfs r2" > "$MOUNT/hello.txt"
 cat "$MOUNT/hello.txt"
 ```
 
-Run the MinIO integration test path when JuiceFS, Redis, and a MinIO bucket are
-available:
+Run the MinIO integration test path when the SmolFS storage backend, Redis, and
+a MinIO bucket are available:
 
 ```bash
 SMOLFS_RUN_INTEGRATION=1 cargo test -p smolfs-juicefs --test minio_integration -- --nocapture
@@ -453,8 +453,8 @@ durable infrastructure.
   tokens.
 - Prefer explicit object-store configuration over hidden global state.
 - Make mount and unmount behavior idempotent where possible.
-- Fail loudly on missing JuiceFS, missing metadata URLs, missing object-store
-  config, or missing FUSE support.
+- Fail loudly on missing storage backend, missing metadata URLs, missing
+  object-store config, or missing local mount support.
 - Avoid changes that weaken persistence guarantees without calling them out.
 
 ## Releases
@@ -484,11 +484,10 @@ git push origin v0.1.0
 
 ## Roadmap
 
-- Replace the current managed JuiceFS copy flow with real cross-platform
-  JuiceFS downloads in `smolfs doctor --install`.
 - Add npm publishing with prebuilt TypeScript SDK native artifacts.
 - Add type stubs for the Python package.
-- Add a Linux CI job that mounts a local dev volume when FUSE is available.
+- Add a Linux CI job that mounts a local dev volume when mount support is
+  available.
 - Add release notes and a changelog before the first non-draft release.
 
 ## License

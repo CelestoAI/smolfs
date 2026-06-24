@@ -5,6 +5,7 @@ repo="${SMOLFS_REPO:-CelestoAI/smolfs}"
 version="${SMOLFS_VERSION:-latest}"
 install_dir="${SMOLFS_INSTALL_DIR:-$HOME/.local/bin}"
 install_cli="${SMOLFS_INSTALL_CLI:-1}"
+install_backend="${SMOLFS_INSTALL_BACKEND:-$install_cli}"
 install_python="${SMOLFS_INSTALL_PYTHON:-0}"
 python_mode="${SMOLFS_PYTHON_MODE:-auto}"
 python_package="${SMOLFS_PYTHON_PACKAGE:-smolfs}"
@@ -123,6 +124,15 @@ trap cleanup EXIT INT TERM
 
 if is_enabled "$install_cli"; then
   install_cli_binary
+fi
+
+if is_enabled "$install_backend"; then
+  if [ ! -x "$install_dir/smolfs" ]; then
+    echo "smolfs: cannot install storage backend because the SmolFS CLI was not installed." >&2
+    echo "Set SMOLFS_INSTALL_CLI=1 or run: smolfs doctor --install" >&2
+    exit 1
+  fi
+  "$install_dir/smolfs" doctor --install
 fi
 
 if is_enabled "$install_python"; then

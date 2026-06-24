@@ -7,7 +7,8 @@ use crate::paths::SmolFsHome;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Config {
-    pub juicefs_bin: Option<PathBuf>,
+    #[serde(default, alias = "juicefs_bin")]
+    pub storage_backend_bin: Option<PathBuf>,
 }
 
 impl Config {

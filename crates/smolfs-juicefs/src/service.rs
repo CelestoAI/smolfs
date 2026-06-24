@@ -9,7 +9,7 @@ use smolfs_core::{
     SmolFsHome, StatusReport, Volume, VolumeInfo,
 };
 
-use crate::doctor::{doctor, require_fuse, require_juicefs_bin};
+use crate::doctor::{doctor, require_mount_support, require_storage_backend_bin};
 use crate::juicefs::JuiceFs;
 
 pub struct SmolFs {
@@ -27,7 +27,7 @@ impl SmolFs {
     pub fn new(home: SmolFsHome) -> Result<Self> {
         home.ensure_layout()?;
         let config = Config::load(&home)?;
-        let bin = require_juicefs_bin(&home, &config)?;
+        let bin = require_storage_backend_bin(&home, &config)?;
         Ok(Self {
             registry: Registry::new(home.clone()),
             juicefs: JuiceFs::new(bin),
@@ -67,7 +67,7 @@ impl SmolFs {
 
     pub fn mount(&self, opts: MountVolume) -> Result<MountInfo> {
         validate_volume_name(&opts.name)?;
-        require_fuse()?;
+        require_mount_support()?;
         ensure_mountpoint(&opts.path)?;
 
         let _lock = self.registry.lock()?;

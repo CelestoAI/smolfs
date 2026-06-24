@@ -23,5 +23,5 @@ fs.flush(volume.name);
 fs.unmount(volume.name, { force: true });
 fs.status(volume.name);
 
-report.juicefs.found satisfies boolean;
-methodReport.fuse.detail satisfies string;
+report.storageBackend.found satisfies boolean;
+methodReport.mountSupport.detail satisfies string;

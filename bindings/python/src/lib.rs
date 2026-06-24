@@ -178,24 +178,24 @@ fn doctor_report_to_py(py: Python<'_>, report: DoctorReport) -> PyResult<Bound<'
     let dict = PyDict::new(py);
     dict.set_item("home", report.home.display().to_string())?;
     dict.set_item("config", report.config.display().to_string())?;
-    let juicefs = PyDict::new(py);
-    juicefs.set_item("found", report.juicefs.found)?;
-    juicefs.set_item(
+    let storage_backend = PyDict::new(py);
+    storage_backend.set_item("found", report.storage_backend.found)?;
+    storage_backend.set_item(
         "path",
         report
-            .juicefs
+            .storage_backend
             .path
             .as_ref()
             .map(|path| path.display().to_string()),
     )?;
-    juicefs.set_item("version", report.juicefs.version)?;
-    juicefs.set_item("managed", report.juicefs.managed)?;
-    dict.set_item("juicefs", juicefs)?;
-    let fuse = PyDict::new(py);
-    fuse.set_item("found", report.fuse.found)?;
-    fuse.set_item("detail", report.fuse.detail)?;
-    fuse.set_item("fix", report.fuse.fix)?;
-    dict.set_item("fuse", fuse)?;
+    storage_backend.set_item("version", report.storage_backend.version)?;
+    storage_backend.set_item("managed", report.storage_backend.managed)?;
+    dict.set_item("storage_backend", storage_backend)?;
+    let mount_support = PyDict::new(py);
+    mount_support.set_item("found", report.mount_support.found)?;
+    mount_support.set_item("detail", report.mount_support.detail)?;
+    mount_support.set_item("fix", report.mount_support.fix)?;
+    dict.set_item("mount_support", mount_support)?;
     Ok(dict)
 }
 

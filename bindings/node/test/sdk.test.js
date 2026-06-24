@@ -8,35 +8,36 @@ const { SmolFS, doctor } = require("../index.js");
 
 function configureSandbox() {
   const root = mkdtempSync(join(tmpdir(), "smolfs-node-test-"));
-  const juicefs = join(root, "juicefs");
+  const storageBackend = join(root, "smolfs-storage");
 
   writeFileSync(
-    juicefs,
+    storageBackend,
     [
       "#!/bin/sh",
       "if [ \"$1\" = \"version\" ]; then",
-      "  echo \"juicefs mock 1.0.0\"",
+      "  echo \"storage backend mock 1.0.0\"",
       "  exit 0",
       "fi",
       "exit 0",
       ""
     ].join("\n")
   );
-  chmodSync(juicefs, 0o755);
+  chmodSync(storageBackend, 0o755);
 
   process.env.SMOLFS_HOME = join(root, "home");
-  process.env.SMOLFS_JUICEFS_BIN = juicefs;
+  process.env.SMOLFS_STORAGE_BACKEND_BIN = storageBackend;
+  delete process.env.SMOLFS_JUICEFS_BIN;
 
   return root;
 }
 
-test("doctor reports the configured JuiceFS binary", () => {
+test("doctor reports the configured storage backend", () => {
   configureSandbox();
 
   const report = doctor();
 
-  assert.equal(report.juicefs.found, true);
-  assert.equal(report.juicefs.version, "juicefs mock 1.0.0");
+  assert.equal(report.storageBackend.found, true);
+  assert.equal(report.storageBackend.version, "1.0.0");
   assert.match(report.home, /smolfs-node-test-/);
 });
 
@@ -71,14 +72,14 @@ test("SmolFS surfaces Rust validation errors", () => {
 
 test("SmolFS does not expose command arguments in native errors", () => {
   const root = configureSandbox();
-  const juicefs = join(root, "juicefs");
+  const storageBackend = join(root, "smolfs-storage");
 
   writeFileSync(
-    juicefs,
+    storageBackend,
     [
       "#!/bin/sh",
       "if [ \"$1\" = \"version\" ]; then",
-      "  echo \"juicefs mock 1.0.0\"",
+      "  echo \"storage backend mock 1.0.0\"",
       "  exit 0",
       "fi",
       "echo \"stderr: $*\" >&2",
@@ -86,7 +87,7 @@ test("SmolFS does not expose command arguments in native errors", () => {
       ""
     ].join("\n")
   );
-  chmodSync(juicefs, 0o755);
+  chmodSync(storageBackend, 0o755);
 
   const fs = SmolFS.fromEnv();
   const metadata = "redis://:supersecret@localhost:6379/1";
@@ -100,10 +101,11 @@ test("SmolFS does not expose command arguments in native errors", () => {
         bucket: "https://example-bucket.s3.amazonaws.com"
       }),
     (error) => {
-      assert.match(error.message, /command failed/);
+      assert.match(error.message, /SmolFS storage backend/);
       assert.doesNotMatch(error.message, /supersecret/);
       assert.doesNotMatch(error.message, /redis:\/\//);
       assert.doesNotMatch(error.message, /stderr:/);
+      assert.doesNotMatch(error.message, /juicefs/i);
       return true;
     }
   );
