@@ -3,8 +3,8 @@ use std::path::PathBuf;
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
-use smolfs_core::{InitVolume, MountVolume};
-use smolfs_juicefs::SmolFs;
+use smolfs_core::{DoctorReport, InitVolume, MountVolume, SmolFsHome};
+use smolfs_juicefs::{SmolFs, doctor as run_doctor};
 
 pyo3::create_exception!(smolfs, SmolFSError, PyException);
 
@@ -57,28 +57,7 @@ impl PySmolFs {
 
     fn doctor<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
         let report = self.inner.doctor().map_err(to_py_err)?;
-        let dict = PyDict::new(py);
-        dict.set_item("home", report.home.display().to_string())?;
-        dict.set_item("config", report.config.display().to_string())?;
-        let juicefs = PyDict::new(py);
-        juicefs.set_item("found", report.juicefs.found)?;
-        juicefs.set_item(
-            "path",
-            report
-                .juicefs
-                .path
-                .as_ref()
-                .map(|path| path.display().to_string()),
-        )?;
-        juicefs.set_item("version", report.juicefs.version)?;
-        juicefs.set_item("managed", report.juicefs.managed)?;
-        dict.set_item("juicefs", juicefs)?;
-        let fuse = PyDict::new(py);
-        fuse.set_item("found", report.fuse.found)?;
-        fuse.set_item("detail", report.fuse.detail)?;
-        fuse.set_item("fix", report.fuse.fix)?;
-        dict.set_item("fuse", fuse)?;
-        Ok(dict)
+        doctor_report_to_py(py, report)
     }
 
     #[pyo3(signature = (name, *, dev=false, metadata=None, store=None, storage=None, bucket=None))]
@@ -188,6 +167,38 @@ impl From<smolfs_core::MountInfo> for MountInfo {
     }
 }
 
+#[pyfunction]
+fn doctor(py: Python<'_>) -> PyResult<Bound<'_, PyDict>> {
+    let home = SmolFsHome::from_env().map_err(to_py_err)?;
+    let report = run_doctor(&home).map_err(to_py_err)?;
+    doctor_report_to_py(py, report)
+}
+
+fn doctor_report_to_py<'py>(py: Python<'py>, report: DoctorReport) -> PyResult<Bound<'py, PyDict>> {
+    let dict = PyDict::new(py);
+    dict.set_item("home", report.home.display().to_string())?;
+    dict.set_item("config", report.config.display().to_string())?;
+    let juicefs = PyDict::new(py);
+    juicefs.set_item("found", report.juicefs.found)?;
+    juicefs.set_item(
+        "path",
+        report
+            .juicefs
+            .path
+            .as_ref()
+            .map(|path| path.display().to_string()),
+    )?;
+    juicefs.set_item("version", report.juicefs.version)?;
+    juicefs.set_item("managed", report.juicefs.managed)?;
+    dict.set_item("juicefs", juicefs)?;
+    let fuse = PyDict::new(py);
+    fuse.set_item("found", report.fuse.found)?;
+    fuse.set_item("detail", report.fuse.detail)?;
+    fuse.set_item("fix", report.fuse.fix)?;
+    dict.set_item("fuse", fuse)?;
+    Ok(dict)
+}
+
 fn to_py_err(err: smolfs_core::SmolFsError) -> PyErr {
     SmolFSError::new_err(err.to_string())
 }
@@ -195,6 +206,7 @@ fn to_py_err(err: smolfs_core::SmolFsError) -> PyErr {
 #[pymodule]
 fn _native(py: Python<'_>, module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add("SmolFSError", py.get_type::<SmolFSError>())?;
+    module.add_function(wrap_pyfunction!(doctor, module)?)?;
     module.add_class::<PySmolFs>()?;
     module.add_class::<VolumeInfo>()?;
     module.add_class::<MountInfo>()?;

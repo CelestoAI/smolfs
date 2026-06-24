@@ -7,6 +7,11 @@ on:
       - "codex/**"
   pull_request:
 
+env:
+  MATURIN_VERSION: "1.14.1"
+  PYTHON_VERSION: "3.12"
+  UV_VERSION: "0.11.24"
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -35,11 +40,12 @@ jobs:
         uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
         with:
           enable-cache: true
+          version: ${{ env.UV_VERSION }}
 
       - name: Set up Python
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
-          python-version: "3.12"
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install JuiceFS
         run: |
@@ -87,4 +93,4 @@ jobs:
         run: cargo test -p smolfs-juicefs --test minio_integration -- --nocapture
 
       - name: Build Python wheel
-        run: uvx maturin build --manifest-path bindings/python/Cargo.toml --interpreter python
+        run: uvx maturin==${{ env.MATURIN_VERSION }} build --manifest-path bindings/python/Cargo.toml --interpreter python

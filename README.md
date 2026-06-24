@@ -42,14 +42,13 @@ Use the SDK from any Python agent runner:
 ```python
 from pathlib import Path
 
-from smolfs import SmolFS, SmolFSError
+from smolfs import SmolFS, doctor
 
-fs = SmolFS.from_env()
-
-report = fs.doctor()
+report = doctor()
 if not report["juicefs"]["found"] or not report["fuse"]["found"]:
     raise RuntimeError(f"SmolFS is not ready: {report}")
 
+fs = SmolFS.from_env()
 volume = fs.ensure_volume("demo", dev=True)
 mount = fs.mount(volume.name, "./workspace")
 
@@ -81,8 +80,8 @@ For S3-compatible services such as MinIO, pass the service bucket URL and provid
 Python packaging uses `uv` and `maturin`.
 
 The GitHub workflow at `.github/workflows/publish-python.yml` builds wheels for
-Linux, macOS, and Windows, builds an sdist, and publishes to PyPI when a `v*`
-tag is pushed.
+Linux and macOS, builds an sdist, and publishes to PyPI when a `v*` tag is
+pushed.
 
 Before the first release, configure PyPI Trusted Publishing:
 
