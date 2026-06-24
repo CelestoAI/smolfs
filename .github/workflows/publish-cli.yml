@@ -23,6 +23,8 @@ jobs:
         include:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
           - os: macos-latest
             target: aarch64-apple-darwin
           - os: macos-15-intel
@@ -37,11 +39,26 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
+      - name: Install Linux arm64 build tools
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu qemu-user
+
       - name: Build Rust CLI
+        env:
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
         run: cargo build --locked --release -p smolfs-cli --target ${{ matrix.target }}
 
       - name: Smoke-test Rust CLI
-        run: ./target/${{ matrix.target }}/release/smolfs --help
+        run: |
+          set -euo pipefail
+          if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
+            qemu-aarch64 -L /usr/aarch64-linux-gnu ./target/${{ matrix.target }}/release/smolfs --help
+          else
+            ./target/${{ matrix.target }}/release/smolfs --help
+          fi
 
       - name: Package Rust CLI
         run: |

@@ -444,16 +444,6 @@ npm ci
 npm test
 ```
 
-## Project Layout
-
-| Path | Purpose |
-| --- | --- |
-| `crates/smolfs-core/` | Shared models, config, registry, paths, validation, and errors. |
-| `crates/smolfs-juicefs/` | JuiceFS command wrapper, doctor checks, service layer, and integration tests. |
-| `crates/smolfs-cli/` | User-facing CLI. |
-| `bindings/python/` | Python SDK built from the Rust core with PyO3 and maturin. |
-| `bindings/node/` | TypeScript SDK built from the Rust core with napi-rs. |
-| `.github/workflows/` | CI and package publishing workflows. |
 
 ## Security and Reliability
 
@@ -467,30 +457,6 @@ durable infrastructure.
 - Fail loudly on missing JuiceFS, missing metadata URLs, missing object-store
   config, or missing FUSE support.
 - Avoid changes that weaken persistence guarantees without calling them out.
-
-## Releases
-
-The `smolfs` command is built from the Rust CLI crate. The GitHub workflow at
-`.github/workflows/publish-cli.yml` builds Linux and macOS release binaries,
-smoke-tests `smolfs --help`, and attaches tarballs to `v*` GitHub releases.
-
-Python packaging uses `uv` and `maturin`. The GitHub workflow at
-`.github/workflows/publish-python.yml` builds wheels for Linux and macOS, builds
-an sdist, and publishes to PyPI when a `v*` tag is pushed.
-
-Before the first Python release, configure PyPI Trusted Publishing:
-
-1. Create or claim the `smolfs` project on PyPI.
-2. Add a trusted publisher for repository `CelestoAI/smolfs`.
-3. Set the workflow name to `publish-python.yml`.
-4. Set the environment name to `pypi`.
-
-Release:
-
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-```
 
 ## Roadmap
 

@@ -34,6 +34,9 @@ install_cli_binary() {
     Linux:x86_64|Linux:amd64)
       target="x86_64-unknown-linux-gnu"
       ;;
+    Linux:arm64|Linux:aarch64)
+      target="aarch64-unknown-linux-gnu"
+      ;;
     Darwin:arm64|Darwin:aarch64)
       target="aarch64-apple-darwin"
       ;;
