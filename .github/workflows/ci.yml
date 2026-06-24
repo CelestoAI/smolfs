@@ -7,13 +7,18 @@ on:
       - "codex/**"
   pull_request:
 
+env:
+  MATURIN_VERSION: "1.14.1"
+  PYTHON_VERSION: "3.12"
+  UV_VERSION: "0.11.24"
+
 jobs:
   test:
     runs-on: ubuntu-latest
 
     services:
       redis:
-        image: redis:7-alpine
+        image: redis@sha256:6ab0b6e7381779332f97b8ca76193e45b0756f38d4c0dcda72dbb3c32061ab99 # redis:7-alpine
         ports:
           - 6379:6379
         options: >-
@@ -24,12 +29,23 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@1.85.0
+        uses: dtolnay/rust-toolchain@c93f4f9c67595668add93d3d6895795ce52d8c2d # 1.85.0
         with:
           components: clippy, rustfmt
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          enable-cache: true
+          version: ${{ env.UV_VERSION }}
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install JuiceFS
         run: |
@@ -42,11 +58,12 @@ jobs:
             -p 9000:9000 \
             -e MINIO_ROOT_USER=minioadmin \
             -e MINIO_ROOT_PASSWORD=minioadmin \
-            minio/minio:latest server /data
-          for i in {1..30}; do
+            minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e server /data
+          for attempt in {1..30}; do
             if curl -fsS http://127.0.0.1:9000/minio/health/ready >/dev/null; then
               exit 0
             fi
+            echo "Waiting for MinIO ($attempt/30)"
             sleep 1
           done
           docker logs smolfs-minio
@@ -54,7 +71,7 @@ jobs:
 
       - name: Create MinIO bucket
         run: |
-          docker run --rm --network host --entrypoint sh minio/mc:latest -c \
+          docker run --rm --network host --entrypoint sh minio/mc@sha256:a7fe349ef4bd8521fb8497f55c6042871b2ae640607cf99d9bede5e9bdf11727 -c \
             "mc alias set local http://127.0.0.1:9000 minioadmin minioadmin && mc mb -p local/smolfs-ci"
 
       - name: Check formatting
@@ -66,16 +83,14 @@ jobs:
       - name: Run unit tests
         run: cargo test --workspace
 
-      - name: Run MinIO integration test
+      - name: Run MinIO integration tests
         env:
           SMOLFS_RUN_INTEGRATION: "1"
-          SMOLFS_TEST_METADATA_URL: redis://127.0.0.1:6379/1
+          SMOLFS_TEST_REDIS_METADATA_URL: redis://127.0.0.1:6379/1
           SMOLFS_TEST_S3_BUCKET: http://127.0.0.1:9000/smolfs-ci
           ACCESS_KEY: minioadmin
           SECRET_KEY: minioadmin
         run: cargo test -p smolfs-juicefs --test minio_integration -- --nocapture
 
       - name: Build Python wheel
-        run: |
-          python3 -m pip install --upgrade pip maturin
-          python3 -m maturin build --manifest-path bindings/python/Cargo.toml --interpreter python3
+        run: uvx maturin==${{ env.MATURIN_VERSION }} build --manifest-path bindings/python/Cargo.toml --interpreter python

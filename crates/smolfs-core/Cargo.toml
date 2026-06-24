@@ -1,5 +1,6 @@
 [package]
 name = "smolfs-core"
+description = "Core models, registry, config, and errors for SmolFS"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -16,4 +17,3 @@ toml.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true
-

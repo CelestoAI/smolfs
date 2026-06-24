@@ -1,5 +1,6 @@
 [package]
 name = "smolfs-python"
+description = "Python extension module for SmolFS"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -14,4 +15,3 @@ crate-type = ["cdylib"]
 pyo3.workspace = true
 smolfs-core.workspace = true
 smolfs-juicefs.workspace = true
-

@@ -1,5 +1,6 @@
 [package]
 name = "smolfs-juicefs"
+description = "JuiceFS-backed volume lifecycle for SmolFS"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -12,4 +13,3 @@ smolfs-core.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true
-
