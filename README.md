@@ -99,6 +99,55 @@ fs.ensure_volume(
 For S3-compatible services such as MinIO, pass the service bucket URL and provide
 `ACCESS_KEY` and `SECRET_KEY` in the environment used by JuiceFS.
 
+## TypeScript SDK
+
+The TypeScript package is a native Node.js binding over the same Rust core. The
+npm package is not published yet; for now, use the local checkout flow below.
+
+For local development from this checkout, use Node.js 18 or newer:
+
+```bash
+cd bindings/node
+npm ci
+npm run build:debug
+npm test
+```
+
+Use the SDK from a Node.js agent runner:
+
+```ts
+import { SmolFS, doctor } from "@celestoai/smolfs";
+import { writeFile } from "node:fs/promises";
+import { join } from "node:path";
+
+const report = doctor();
+if (!report.juicefs.found || !report.fuse.found) {
+  throw new Error(`SmolFS is not ready: ${JSON.stringify(report)}`);
+}
+
+const fs = SmolFS.fromEnv();
+const volume = fs.ensureVolume({ name: "demo", dev: true });
+const mount = fs.mount({ name: volume.name, path: "./workspace" });
+
+try {
+  await writeFile(join(mount.mountpoint, "hello.txt"), "hello from SmolFS\n");
+  fs.flush(volume.name);
+} finally {
+  fs.unmount(volume.name);
+}
+```
+
+Cloud volumes use the same options object:
+
+```ts
+fs.ensureVolume({
+  name: "agent-workspace",
+  metadata: "redis://localhost:6379/1",
+  storage: "s3",
+  bucket: "https://my-bucket.s3.us-east-2.amazonaws.com"
+});
+```
+
 ## Publishing the Python Package
 
 Python packaging uses `uv` and `maturin`.
@@ -131,7 +180,7 @@ smoke-tests `smolfs --help`, and attaches tarballs to `v*` GitHub releases.
 
 - Replace the current managed JuiceFS copy flow with real cross-platform
   JuiceFS downloads in `smolfs doctor --install`.
-- Add a Node.js SDK using the same Rust core through `napi-rs`.
+- Add npm publishing with prebuilt TypeScript SDK native artifacts.
 - Add type stubs for the Python package.
 - Add a Linux CI job that mounts a local dev volume when FUSE is available.
 - Add release notes and a changelog before the first non-draft release.

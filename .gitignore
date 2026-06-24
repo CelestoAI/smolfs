@@ -8,4 +8,6 @@ bindings/python/.venv/
 bindings/python/python/smolfs/*.so
 bindings/python/python/smolfs/*.pyd
 bindings/python/python/smolfs/*.dylib
-
+bindings/node/node_modules/
+bindings/node/*.node
+bindings/node/target/
