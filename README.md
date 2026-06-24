@@ -101,20 +101,14 @@ For S3-compatible services such as MinIO, pass the service bucket URL and provid
 
 ## TypeScript SDK
 
-The TypeScript package is a native Node.js binding over the same Rust core. Use
-it when an agent runner wants to create, mount, flush, unmount, or inspect
-SmolFS volumes directly from JavaScript or TypeScript.
+The TypeScript package is a native Node.js binding over the same Rust core. The
+npm package is not published yet; for now, use the local checkout flow below.
 
-```bash
-# Available after npm publishing is configured.
-npm install @celestoai/smolfs
-```
-
-For local development from this checkout:
+For local development from this checkout, use Node.js 18 or newer:
 
 ```bash
 cd bindings/node
-npm install
+npm ci
 npm run build:debug
 npm test
 ```

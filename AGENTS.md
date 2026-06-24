@@ -18,6 +18,7 @@ to manage JuiceFS directly.
   - **Metadata stores:** SQLite for local/dev use, Redis for shared/cloud use
   - **Object storage:** S3-compatible stores, tested with MinIO in CI
   - **Python packaging:** `uv` plus `maturin`
+  - **TypeScript packaging:** Node.js native bindings via `napi-rs`
 - **Current scope:** Focus on SmolFS developer experience. Do not assume SmolVM
   production integration is in scope unless the task explicitly asks for it.
 
@@ -39,6 +40,7 @@ to manage JuiceFS directly.
   `cargo test -p smolfs-juicefs --test minio_integration -- --nocapture`
 - **Build Python wheel:** `uvx maturin build --manifest-path bindings/python/Cargo.toml --interpreter python`
 - **Develop Python binding locally:** `uvx maturin develop --manifest-path bindings/python/Cargo.toml`
+- **Test TypeScript SDK:** `cd bindings/node && npm ci && npm test`
 
 ## Project Structure
 
@@ -46,6 +48,7 @@ to manage JuiceFS directly.
 - `crates/smolfs-juicefs/`: JuiceFS command wrapper, doctor checks, service layer, and integration tests.
 - `crates/smolfs-cli/`: User-facing CLI.
 - `bindings/python/`: Python SDK built from the Rust core with PyO3 and maturin.
+- `bindings/node/`: TypeScript SDK built from the Rust core with napi-rs.
 - `.github/workflows/`: CI and Python package publishing workflows.
 
 ## Development Conventions
