@@ -3,6 +3,7 @@ const { chmodSync, mkdirSync, mkdtempSync, writeFileSync } = require("node:fs");
 const { tmpdir } = require("node:os");
 const { join } = require("node:path");
 const { spawnSync } = require("node:child_process");
+const { version } = require("../package.json");
 
 const root = mkdtempSync(join(tmpdir(), "smolfs-node-pack-"));
 const project = join(root, "project");
@@ -27,7 +28,7 @@ chmodSync(storageBackend, 0o755);
 run("npm", ["pack", "--pack-destination", root], process.cwd());
 run("npm", ["init", "-y"], root);
 
-const tarball = join(root, "celestoai-smolfs-0.1.0.tgz");
+const tarball = join(root, `celestoai-smolfs-${version}.tgz`);
 run("npm", ["install", tarball], project);
 
 const smoke = [

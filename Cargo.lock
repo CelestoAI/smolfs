@@ -620,7 +620,7 @@ dependencies = [
 
 [[package]]
 name = "smolfs-cli"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -631,7 +631,7 @@ dependencies = [
 
 [[package]]
 name = "smolfs-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "dirs",
  "fs2",
@@ -644,7 +644,7 @@ dependencies = [
 
 [[package]]
 name = "smolfs-juicefs"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "serde",
  "smolfs-core",
@@ -653,7 +653,7 @@ dependencies = [
 
 [[package]]
 name = "smolfs-node"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "napi",
  "napi-build",
@@ -664,7 +664,7 @@ dependencies = [
 
 [[package]]
 name = "smolfs-python"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "pyo3",
  "smolfs-core",
